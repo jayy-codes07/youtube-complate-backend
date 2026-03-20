@@ -2,15 +2,18 @@
   "name": "node-backend",
   "version": "1.0.0",
   "description": "this is fullstack project which conteain mern stack",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon src/index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "nodemon": "^3.1.14"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1"
   }
 }
