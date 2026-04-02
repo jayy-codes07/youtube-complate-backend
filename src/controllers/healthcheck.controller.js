@@ -8,7 +8,6 @@ const healthcheck = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json(ApiResponse(200, {}, "api running perfectly fine"));
-  //TODO: build a healthcheck response that simply returns the OK status as json with a message
 });
 
 export { healthcheck };
