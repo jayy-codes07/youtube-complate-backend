@@ -8,6 +8,46 @@ import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+  let videos = [];
+
+  if (query) {
+    videos = await Video.find({
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+      ],
+    });
+    if (!videos || videos.length === 0) {
+      throw new ApiError(400, "there is no such video exist");
+    }
+    if (userId) {
+      videos = videos.filter((vid) => vid.owner.toString() === userId);
+    }
+    videos = videos.filter((vid) => vid.isPublished === true);
+  } else {
+    videos = await Video.find({ isPublished: true });
+  }
+
+  if (userId) {
+    videos = videos.filter((vid) => vid.owner.toString() === userId);
+  }
+
+  if (sortBy && sortType) {
+    videos = videos.sort((a, b) => {
+      if (sortType === "desc") {
+        return a[sortBy] < b[sortBy] ? 1 : -1;
+      } else {
+        return a[sortBy] > b[sortBy] ? 1 : -1;
+      }
+    });
+  }
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const paginatedVideos = videos.slice(startIndex, endIndex);
+  res
+    .status(200)
+    .json(new ApiResponse(200, paginatedVideos, "those are videos "));
   //TODO: get all videos based on query, sort, pagination
 });
 
@@ -54,7 +94,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "VideoID is required");
   }
 
-  const video = await Video.findByID(videoId);
+  const video = await Video.findById(videoId);
 
   if (!video) {
     throw new ApiError(400, "there is no such video exist in DB");
@@ -85,15 +125,14 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
   }
 
-
-
-  const video = await Video.findByIdAndUpdate(videoId,
+  const video = await Video.findByIdAndUpdate(
+    videoId,
     {
       $set: {
         title: title,
         description: description,
         thumbnail: thumbnail?.url,
-      }
+      },
     },
     { new: true }
   );
@@ -113,52 +152,57 @@ const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: delete video
   if (!videoId) {
-    throw new ApiError(400, "VideoID is required")
+    throw new ApiError(400, "VideoID is required");
   }
-  const video = await Video.findById(videoId)
+  const video = await Video.findById(videoId);
   if (!video) {
     throw new ApiError(400, "this video does not exist in database");
   }
-  const CloudinaryThumbnail = video.thumbnail
-  const CloudinaryVideoFile = video.videoFile
+  const CloudinaryThumbnail = video.thumbnail;
+  const CloudinaryVideoFile = video.videoFile;
 
   if (CloudinaryThumbnail) {
-    await deleteOnCloudinary(CloudinaryThumbnail, "image")
+    await deleteOnCloudinary(CloudinaryThumbnail, "image");
   }
 
   if (CloudinaryVideoFile) {
-    await deleteOnCloudinary(CloudinaryVideoFile, "video")
+    await deleteOnCloudinary(CloudinaryVideoFile, "video");
   }
 
+  await Video.findByIdAndDelete(videoId);
 
-
-  await Video.findByIdAndDelete(videoId)
-
-  res.status(200).json(new ApiResponse(200, video, "video deleted SuccessFully"))
+  res
+    .status(200)
+    .json(new ApiResponse(200, video, "video deleted SuccessFully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!videoId?.trim()) {
-    throw new ApiError(400, "videoId is required")
+    throw new ApiError(400, "videoId is required");
   }
   // const video = await Video.findByIdAndUpdate(videoId, $set : { isPublished: isPublished }, { new: true })
-  const video = await Video.findById(videoId)
+  const video = await Video.findById(videoId);
 
   if (!video) {
-    throw new ApiError(400, "there is no such video in database")
+    throw new ApiError(400, "there is no such video in database");
   }
-  let videoPublished = video.isPublished
+  let videoPublished = video.isPublished;
   if (videoPublished) {
-    videoPublished = false
+    videoPublished = false;
   } else {
-    videoPublished = true
+    videoPublished = true;
   }
 
-  const UpdatedVideo = await Video.findByIdAndUpdate(videoId,{ $set : { isPublished: videoPublished }}, { new: true })
+  const UpdatedVideo = await Video.findByIdAndUpdate(
+    videoId,
+    { $set: { isPublished: videoPublished } },
+    { new: true }
+  );
 
-
-  res.status(200).json(new ApiResponse(200, UpdatedVideo, "changed in video publishen"))
+  res
+    .status(200)
+    .json(new ApiResponse(200, UpdatedVideo, "changed in video publishen"));
 });
 
 export {
