@@ -15,9 +15,9 @@ connectDB()
       })
       .on("error", (error) => {
         console.log("there is error => ", error);
-        throw Error;
+        throw error;
       });
   })
   .catch((err) => {
-    console.error("there is error".err);
+    console.error("there is error", err);
   });

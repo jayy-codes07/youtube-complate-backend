@@ -1,7 +1,7 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Subscription } from "../models/subscription.model.js";
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/apiError.js";
+import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
@@ -43,7 +43,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
   );
 
   if (subscriber.length === 0) {
-    return res.status(200).json(new ApiResponse(200, "there are no subscribers"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "there are no subscribers"));
   }
   res
     .status(200)
@@ -69,3 +71,4 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 });
 
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
+
