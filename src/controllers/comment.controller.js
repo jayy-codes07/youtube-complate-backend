@@ -61,7 +61,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const allcomments = await Comment.aggregate(pipeline);
 
   if (!allcomments.length) {
-    throw new ApiError(200, "there is no com");
+    throw new ApiError(400, "there is no comment");
   }
 
   return res
