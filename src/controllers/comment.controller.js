@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/apiError.js";
@@ -65,8 +65,8 @@ const getVideoComments = asyncHandler(async (req, res) => {
   }
 
   return res
-    .status(201)
-    .json(new ApiResponse(201, allcomments, "all comments successfully"));
+    .status(200)
+    .json(new ApiResponse(200, allcomments, "all comments successfully"));
 });
 
 const addComment = asyncHandler(async (req, res) => {
@@ -108,20 +108,11 @@ const addComment = asyncHandler(async (req, res) => {
 
 const updateComment = asyncHandler(async (req, res) => {
   // TODO: update a comment
-  const { videoId, commentId } = req.params;
+  const { commentId } = req.params;
   const { content } = req.body;
-
-  if (!videoId) {
-    throw new ApiError(400, "provid video id");
-  }
 
   if (!content?.trim()) {
     throw new ApiError(400, "there is no content to add");
-  }
-  const video = await Video.findById(videoId);
-
-  if (!video) {
-    throw new ApiError(400, "there is no such video");
   }
 
   const comment = await Comment.findOneAndUpdate(
@@ -138,32 +129,28 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(404, "something went wrong while updating comment");
   }
   return res
-    .status(201)
-    .json(new ApiResponse(201, comment, "comment updating successfully"));
+    .status(200)
+    .json(new ApiResponse(200, comment, "comment updating successfully"));
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
   // TODO: delete a comment
-  const { videoId, commentId } = req.params;
-
-  if (!videoId) {
-    throw new ApiError(400, "provid video id");
+  const { commentId } = req.params;
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "provide proper commentID");
   }
-  const video = await Video.findById(videoId);
-
-  if (!video) {
-    throw new ApiError(400, "there is no such video");
-  }
-
   const comment = await Comment.findOneAndDelete({
     _id: commentId,
     owner: req.user._id,
   });
 
+  if (!comment) {
+    throw new ApiError(404, "comment does not found or unauthorized");
+  }
+
   return res
-    .status(201)
-    .json(new ApiResponse(201, comment, "comment deleted successfully"));
+    .status(200)
+    .json(new ApiResponse(200, comment, "comment deleted successfully"));
 });
 
 export { getVideoComments, addComment, updateComment, deleteComment };
-

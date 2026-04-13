@@ -48,57 +48,84 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   if (!isValidObjectId(playlistId)) {
-    throw new ApiError(400, "is playlist id is not valid")
+    throw new ApiError(400, "is playlist id is not valid");
   }
-  const playlist = await Playlist.findById(playlistId)
+  const playlist = await Playlist.findById(playlistId);
 
   if (!playlist) {
-    throw new ApiError(400, "playlist does not exist")
+    throw new ApiError(400, "playlist does not exist");
   }
 
-  return res.status(200).json(new ApiResponse(200, playlist, "here is playlist be that id"))
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlist, "here is playlist be that id"));
   //TODO: get playlist by id
 });
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
   if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
-    throw new ApiError(400, "provide proper playlistId and VideoId")
+    throw new ApiError(400, "provide proper playlistId and VideoId");
   }
 
-  const video = await Video.findById(videoId)
+  const video = await Video.findById(videoId);
 
   if (!video) {
-    throw new ApiError(400, "no such video exist in database")
+    throw new ApiError(400, "no such video exist in database");
   }
-  const playlist = await Playlist.findOneAndUpdate({ _id: playlistId, owner: req.user._id }, { $push: { videos: videoId } }, { new: true })
+  const playlist = await Playlist.findOneAndUpdate(
+    { _id: playlistId, owner: req.user._id },
+    { $push: { videos: videoId } },
+    { new: true }
+  );
 
   if (!playlist) {
-    throw new ApiError(500, "something went wrong while adding video in playlist ")
+    throw new ApiError(
+      500,
+      "something went wrong while adding video in playlist "
+    );
   }
-  res.status(200).json(new ApiResponse(200, playlist, "video added in playlist successfully"))
-
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, playlist, "video added in playlist successfully")
+    );
 });
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
 
   if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
-    throw new ApiError(400, "provide proper playlistId and VideoId")
+    throw new ApiError(400, "provide proper playlistId and VideoId");
   }
 
-  const video = await Video.findById(videoId)
+  const video = await Video.findById(videoId);
 
   if (!video) {
-    throw new ApiError(400, "no such video exist in database")
+    throw new ApiError(400, "no such video exist in database");
   }
-  const deletedPlaylistVideo = await Playlist.findOneAndUpdate({ _id: playlistId, owner: req.user._id }, { $pul: { videos: video } }, { new: true })
+  const deletedPlaylistVideo = await Playlist.findOneAndUpdate(
+    { _id: playlistId, owner: req.user._id },
+    { $pull: { videos: videoId } },
+    { new: true }
+  );
 
   if (!deletedPlaylistVideo) {
-    throw new ApiError(400, "something went wroing while deleting playlist video")
+    throw new ApiError(
+      400,
+      "something went wroing while deleting playlist video"
+    );
   }
 
-  return res.status(200).json(new ApiResponse(200, deletedPlaylistVideo, "video deleted in playlist successfully"))
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        deletedPlaylistVideo,
+        "video deleted in playlist successfully"
+      )
+    );
   // TODO: remove video from playlist
 });
 
@@ -106,16 +133,23 @@ const deletePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
 
   if (!isValidObjectId(playlistId)) {
-    throw new ApiError(400, "provide proper playlistId")
+    throw new ApiError(400, "provide proper playlistId");
   }
 
-  const deletedPlaylist = await Playlist.findOneAndDelete({ _id: playlistId, owner: req.user._id })
+  const deletedPlaylist = await Playlist.findOneAndDelete({
+    _id: playlistId,
+    owner: req.user._id,
+  });
 
   if (!deletedPlaylist) {
-    throw new ApiError(400, "somwthing went wrong in deleting playlist")
+    throw new ApiError(400, "somwthing went wrong in deleting playlist");
   }
 
-  return res.status(200).json(new ApiResponse(200, deletedPlaylist, "playlist deleted successfully"))
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, deletedPlaylist, "playlist deleted successfully")
+    );
   // TODO: delete playlist
 });
 
@@ -124,18 +158,30 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
   if (!isValidObjectId(playlistId)) {
-    throw new ApiError(400, "provide proper playlistid")
+    throw new ApiError(400, "provide proper playlistid");
   }
   if (!name.trim() || !description.trim()) {
-    throw new ApiError(400, "provided name and description is empty")
+    throw new ApiError(400, "provided name and description is empty");
   }
-  const updatedPlaylist = await Playlist.findOneAndUpdate({ _id: playlistId, owner: req.user._id }, { name: name, description: description }, { new: true })
+  const updatedPlaylist = await Playlist.findOneAndUpdate(
+    { _id: playlistId, owner: req.user._id },
+    { name: name, description: description },
+    { new: true }
+  );
 
   if (!updatedPlaylist) {
-    throw new ApiError(400, "something went wrong in updating playlist")
+    throw new ApiError(400, "something went wrong in updating playlist");
   }
 
-  return res.status(200).json(new ApiResponse(200, updatedPlaylist, "detail of playlist updated successfully"))
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedPlaylist,
+        "detail of playlist updated successfully"
+      )
+    );
 
   //TODO: update playlist
 });

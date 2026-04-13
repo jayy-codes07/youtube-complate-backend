@@ -125,8 +125,8 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
   }
 
-  const video = await Video.findByIdAndUpdate(
-    videoId,
+  const video = await Video.findOneAndUpdate(
+    { _id: videoId, owner: req.user?._id },
     {
       $set: {
         title: title,
@@ -140,7 +140,6 @@ const updateVideo = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(500, "problem in uploading to database");
   }
-  console.log(video);
 
   return res
     .status(200)
@@ -154,7 +153,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
   if (!videoId) {
     throw new ApiError(400, "VideoID is required");
   }
-  const video = await Video.findById(videoId);
+  const video = await Video.findOne({ _id: videoId, owner: req.user?._id });
   if (!video) {
     throw new ApiError(400, "this video does not exist in database");
   }
@@ -169,7 +168,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     await deleteOnCloudinary(CloudinaryVideoFile, "video");
   }
 
-  await Video.findByIdAndDelete(videoId);
+  await Video.findOneAndDelete({ _id: videoId, owner: req.user?._id });
 
   res
     .status(200)
@@ -182,20 +181,16 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     throw new ApiError(400, "videoId is required");
   }
   // const video = await Video.findByIdAndUpdate(videoId, $set : { isPublished: isPublished }, { new: true })
-  const video = await Video.findById(videoId);
+  const video = await Video.findOne({ _id: videoId, owner: req.user?._id });
 
   if (!video) {
     throw new ApiError(400, "there is no such video in database");
   }
   let videoPublished = video.isPublished;
-  if (videoPublished) {
-    videoPublished = false;
-  } else {
-    videoPublished = true;
-  }
+  videoPublished = !videoPublished;
 
-  const UpdatedVideo = await Video.findByIdAndUpdate(
-    videoId,
+  const UpdatedVideo = await Video.findOneAndUpdate(
+    { _id: videoId, owner: req.user?._id },
     { $set: { isPublished: videoPublished } },
     { new: true }
   );
@@ -213,4 +208,3 @@ export {
   deleteVideo,
   togglePublishStatus,
 };
-
